@@ -12,7 +12,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   3. `uv run ruff check .` and `uv run mypy src` pass.
 
 ## T2: Sample data
-- Status: todo
+- Status: done
 - Depends on: T1
 - Do: create `data/sample_sales.csv` with synthetic rows: `date,product,quantity,unit_price_cents`, at least 20 rows across 3 days and 3 products.
 - Acceptance:
