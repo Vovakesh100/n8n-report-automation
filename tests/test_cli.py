@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from report.cli import main
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_sales.csv"
@@ -68,3 +70,68 @@ def test_short_row_reports_line_and_fails(tmp_path) -> None:  # type: ignore[no-
     assert "unit_price_cents" in proc.stderr
     assert "Traceback" not in proc.stderr
     assert proc.stdout == ""
+
+
+def _csv(tmp_path: Path, dates: list[str]) -> Path:
+    path = tmp_path / "s.csv"
+    lines = ["date,product,quantity,unit_price_cents"]
+    lines += [f"{d},Widget,2,150" for d in dates]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def test_gap_date_inside_range_has_zero_entry(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, ["2025-01-01", "2025-01-03"])
+    assert main([str(path)]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert [e["date"] for e in data] == ["2025-01-01", "2025-01-02", "2025-01-03"]
+    assert data[1] == {
+        "date": "2025-01-02",
+        "total_revenue_cents": 0,
+        "orders": 0,
+        "top_product": None,
+    }
+
+
+def test_date_with_orders_unchanged(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, ["2025-01-01", "2025-01-03"])
+    assert main([str(path)]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data[0] == {
+        "date": "2025-01-01",
+        "total_revenue_cents": 300,
+        "orders": 1,
+        "top_product": "Widget",
+    }
+
+
+def test_from_to_extend_range(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, ["2025-01-02"])
+    assert main([str(path), "--from", "2025-01-01", "--to", "2025-01-03"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert [e["date"] for e in data] == ["2025-01-01", "2025-01-02", "2025-01-03"]
+    assert [e["orders"] for e in data] == [0, 1, 0]
+
+
+def test_empty_file_still_empty_list(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, [])
+    assert main([str(path)]) == 0
+    assert json.loads(capsys.readouterr().out) == []
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["--from", "2025-13-01"],
+        ["--to", "not-a-date"],
+        ["--from", "2025-1-1"],
+        ["--from", "2025-01-05", "--to", "2025-01-01"],
+    ],
+)
+def test_invalid_date_args(capsys, tmp_path, args) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, ["2025-01-02"])
+    code = main([str(path), *args])
+    captured = capsys.readouterr()
+    assert code != 0
+    assert captured.err.startswith("error:")
+    assert captured.out == ""

@@ -8,6 +8,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import asdict
 
+from report.dates import date_range, parse_date
 from report.summary import SaleRow, summarize
 
 
@@ -35,7 +36,16 @@ def read_rows(path: str) -> list[SaleRow]:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="report.cli", description=__doc__)
     parser.add_argument("csv_path", help="path to the sales CSV file")
+    parser.add_argument("--from", dest="date_from", help="first date, YYYY-MM-DD")
+    parser.add_argument("--to", dest="date_to", help="last date, YYYY-MM-DD")
     args = parser.parse_args(argv)
+    for flag, value in (("--from", args.date_from), ("--to", args.date_to)):
+        if value is not None:
+            try:
+                parse_date(value)
+            except ValueError as exc:
+                print(f"error: {flag}: {exc}", file=sys.stderr)
+                return 2
     try:
         rows = read_rows(args.csv_path)
     except FileNotFoundError:
@@ -47,9 +57,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     by_date: dict[str, list[SaleRow]] = defaultdict(list)
     for row in rows:
         by_date[row.date].append(row)
-    result = [
-        {"date": d, **asdict(summarize(by_date[d]))} for d in sorted(by_date)
-    ]
+    try:
+        dates = date_range(by_date, args.date_from, args.date_to)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    result = [{"date": d, **asdict(summarize(by_date.get(d, [])))} for d in dates]
     print(json.dumps(result, indent=2))
     return 0
 

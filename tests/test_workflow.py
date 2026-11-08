@@ -121,6 +121,32 @@ def test_format_message_formats_cents_with_node(tmp_path: Path) -> None:
         assert f"revenue {expected}," in texts[str(cents)]
 
 
+def test_format_message_no_sales_line(tmp_path: Path) -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    harness = (
+        "const fn = new Function('$input', process.argv[2]);\n"
+        "const stdout = process.argv[3];\n"
+        "console.log(fn({first: () => ({json: {stdout}})})[0].json.text);\n"
+    )
+    script = tmp_path / "harness2.js"
+    script.write_text(harness, encoding="utf-8")
+    entries = [
+        {"date": "2025-01-01", "total_revenue_cents": 17183, "orders": 2, "top_product": "Widget"},
+        {"date": "2025-01-02", "total_revenue_cents": 0, "orders": 0, "top_product": None},
+    ]
+    result = subprocess.run(
+        [node, str(script), _format_code(), json.dumps(entries)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    lines = result.stdout.splitlines()
+    assert "2025-01-02: no sales" in lines
+    assert "2025-01-01: revenue 171.83, orders 2, top product Widget" in lines
+
+
 EXPRESSION = "{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}"
 EXPECTED_COMMAND = f"=PYTHONPATH=/app/src python3 -m report.cli '{EXPRESSION}'"
 
