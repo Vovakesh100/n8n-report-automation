@@ -38,7 +38,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   3. A missing file produces a clear error message and a non-zero exit code.
 
 ## T5: n8n workflow export
-- Status: done
+- Status: blocked (workflow file accepted; real Telegram send blocked until the owner fills .env, see OPEN-QUESTIONS.md Q6)
 - Depends on: T4
 - Do: create `workflows/daily_report.json` for a manually triggered workflow that reads the CSV, runs the summary, and sends the result to a Telegram node. Use placeholder credential names only.
 - Acceptance:

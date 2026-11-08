@@ -17,3 +17,5 @@ The committed workflow has a manual trigger only. No schedule and no real chat i
 - Telegram credential: in the "Send Telegram" node, select your own Telegram API credential (bot token created in n8n, never committed). Placeholder name is `REPLACE_WITH_TELEGRAM_CREDENTIAL_NAME`.
 - Paths: "Read CSV" and "Run Report CLI" use `/data/sample_sales.csv` (local folder, D1). Adjust to the mounted path. The Execute Command node needs `uv` and the project available where n8n runs.
 - Q4 (no-orders display) is not handled: the message lists only dates present in the CLI output.
+
+6. **Telegram credentials needed (blocks a real send for T5).** `.env` was created from `.env.example` and is git-ignored, but `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are empty. The owner must fill them in `.env` by hand and create the Telegram credential in n8n. Agents do not write these values.
