@@ -39,3 +39,32 @@ def test_missing_file(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
     assert code != 0
     assert "nope.csv" in captured.err
     assert captured.out == ""
+
+
+def test_sample_dates_give_different_summaries(capsys) -> None:  # type: ignore[no-untyped-def]
+    assert main([str(SAMPLE)]) == 0
+    data = json.loads(capsys.readouterr().out)
+    distinct = {
+        (e["total_revenue_cents"], e["orders"], e["top_product"]) for e in data
+    }
+    assert len(distinct) >= 2
+
+
+def test_short_row_reports_line_and_fails(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = tmp_path / "short.csv"
+    path.write_text(
+        "date,product,quantity,unit_price_cents\n"
+        "2025-01-01,widget,1,250\n"
+        "2025-01-01,gadget,2\n"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-m", "report.cli", str(path)],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert proc.returncode != 0
+    assert "line 3" in proc.stderr
+    assert "unit_price_cents" in proc.stderr
+    assert "Traceback" not in proc.stderr
+    assert proc.stdout == ""
