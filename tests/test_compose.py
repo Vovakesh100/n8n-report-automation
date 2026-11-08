@@ -10,7 +10,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 COMPOSE = (ROOT / "docker-compose.yml").read_text()
 ENV_EXAMPLE = (ROOT / ".env.example").read_text()
-NAMES = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "GENERIC_TIMEZONE", "TZ"]
+NAMES = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "REPORT_CSV_PATH", "GENERIC_TIMEZONE", "TZ"]
 
 
 def test_compose_is_well_formed_text() -> None:
@@ -64,3 +64,7 @@ def test_docker_compose_config(tmp_path: Path) -> None:
     if "daemon" in result.stderr.lower() and result.returncode != 0:
         pytest.skip("docker compose unavailable: " + result.stderr[:100])
     assert result.returncode == 0, result.stderr
+
+
+def test_env_access_in_nodes_is_enabled() -> None:
+    assert 'N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"' in COMPOSE
