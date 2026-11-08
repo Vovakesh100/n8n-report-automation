@@ -107,3 +107,8 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - Risks: with storage off, past runs cannot be inspected in the UI (debugging is harder); the token is still visible in live manual-run output; takes effect only after the container is recreated.
 
 Full checks after merging T13 and T14 into integration: `ruff check .` ok, `mypy src` ok, `pytest` 58 passed, `docker compose --env-file /dev/null config --quiet` rc 0.
+
+### T15: Repository cleanup (done)
+- Done: all service worktrees (`.claude/worktrees/*` and scratchpad ones) removed with `git worktree remove`; local branch `task/T8-data-malformed` deleted. `git worktree list` shows only the main working copy; `git status` is clean.
+- Verified by tester (PASS): worktree list, branch absent, clean status; final checks on integration: ruff ok, mypy ok, 58 tests passed, `docker compose config` rc 0 with the execution-data and REPORT_FROM/REPORT_TO variables; local integration == origin/integration; origin/main unchanged (`b66b591`); `.env` untracked and ignored; no token-shaped strings or chat ids in tracked files.
+- Left on purpose: local branches `worktree-agent-*` and `task/T8-data-malformed-wt` (created by agent worktrees; their content is on the pushed task branches). The owner can delete them with `git branch -D`.

@@ -113,7 +113,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 - Acceptance: 1) `docker compose config` is valid; 2) both variables are in the file (test); 3) docs/RUN.md describes the effect and how to undo it.
 
 ## T15: Repository cleanup
-- Status: todo
+- Status: done
 - Depends on: T13, T14
 - Do: remove service worktrees under `.claude/worktrees/` and the local branch `task/T8-data-malformed`.
 - Acceptance: `git worktree list` shows only the main working copy.
