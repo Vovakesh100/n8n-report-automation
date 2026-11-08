@@ -90,7 +90,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 - Acceptance: JSON valid; no hardcoded token or chat id; all parameters come from variables; cron and timezone as decided.
 
 ## T11: "no sales" line (Q4)
-- Status: todo
+- Status: done
 - Depends on: T10
 - Do: a date without orders is shown as the line `<date>: no sales`.
 - Acceptance: tests for an empty date and for a date with orders.
