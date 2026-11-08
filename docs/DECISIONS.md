@@ -23,3 +23,8 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - Done: `src/report/summary.py` with `SaleRow`, `DailySummary`, pure `summarize(rows)`; revenue aggregated per product, top product by key (-revenue, name).
 - Coverage: criterion 1 by `test_revenue_is_integer_quantity_times_price`; 2 by `test_empty_input`; 3 by `test_tie_resolved_by_name_ascending`; plus per-product aggregation and sample-data smoke tests. Tester green (9 tests).
 - Risks: `orders` = number of input rows (CSV has no order id); no date check or validation of negative/zero quantities; `SaleRow` type was the developer's addition.
+
+### T4: CLI (done)
+- Done: `src/report/cli.py` (`main(argv) -> int`, stdlib only). Output is a JSON array sorted by date: `{date, total_revenue_cents, orders, top_product}`. Missing file: `error: file not found: <path>` on stderr, exit 2; unreadable file / bad column / non-integer value: exit 1.
+- Coverage: criterion 1 by `test_module_prints_valid_json`; 2 by `test_one_entry_per_date_sorted`; 3 by `test_missing_file`. Tester green (12 tests) plus manual CLI checks.
+- Risks: a CSV row with a missing field raises an uncaught `TypeError` traceback (exit 1) instead of the clean error (tester finding, outside acceptance criteria; candidate follow-up). Empty CSV prints `[]` with exit 0. Dates without orders never appear in output (relates to open Q4, owner's decision).

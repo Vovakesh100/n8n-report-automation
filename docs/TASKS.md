@@ -29,7 +29,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   3. A tie for top product is resolved by the product name in ascending order, and a test checks it.
 
 ## T4: CLI
-- Status: todo
+- Status: done
 - Depends on: T3
 - Do: in `src/report/cli.py`, read a CSV path from the command line, group rows by date, and print one JSON summary per date.
 - Acceptance:
