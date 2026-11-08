@@ -27,16 +27,14 @@ import through the UI, the 09:00 firing, a real Telegram send. Do these steps on
 3. Check the Telegram chat: it must contain "Daily sales report" and one line per date
    (`2025-01-01: revenue 114.88, orders 7, top product gadget` for the sample data).
 4. If it works, turn on the "Active" switch (top right) so the Schedule Trigger fires every day at
-   09:00 (Europe/Chisinau). After the first 09:00, look at Executions to confirm the run.
+   09:00 (Europe/Chisinau). After the first 09:00, check that the message arrived in Telegram (execution data is not stored, see
+   'Execution data settings' below).
 
 The token and chat id are never printed in reports; agents do not read `.env`. Do not paste them
 into issues or chat either.
 
-Optional: the token is part of the Send Telegram request URL, so it can appear in stored execution
-data (UI and `./n8n_data`). To avoid storing it, add to the `environment:` section of
-`docker-compose.yml`: `EXECUTIONS_DATA_SAVE_ON_SUCCESS: none` and `EXECUTIONS_DATA_SAVE_ON_ERROR: none`
-(the Executions list then keeps no data to inspect). If the token was ever shown or leaked, revoke it
-in BotFather and set a new one.
+If the token was ever shown or leaked, revoke it in BotFather and set a new one in `.env`.
+See 'Execution data settings' below for what n8n stores.
 
 ## Execution data settings
 `docker-compose.yml` sets `EXECUTIONS_DATA_SAVE_ON_SUCCESS: "none"` and

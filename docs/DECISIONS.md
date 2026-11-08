@@ -94,3 +94,16 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - Not verified (owner): import through the n8n UI; the cron firing at 09:00 Europe/Chisinau; a real Telegram send with the real token and chat id; only aarch64 tested. The token is stored in n8n execution data because it is in the request URL (confirmed in the run); optional `EXECUTIONS_DATA_SAVE_ON_SUCCESS=none` and `EXECUTIONS_DATA_SAVE_ON_ERROR=none`.
 
 - T5 unblocked: the owner filled `.env` (Q2, Q6). The real Telegram send remains the owner's manual check (Q8).
+
+## Session 4
+### T13: --from/--to in the workflow command (done)
+- Done: Run Report CLI appends `--from '<REPORT_FROM>'` / `--to '<REPORT_TO>'` only when the variable is non-empty; single quotes are stripped from the values. `REPORT_FROM`/`REPORT_TO` added to compose (as `${VAR}` references) and `.env.example` (empty). CLI and `dates.py` needed no change: dates outside the range are already not printed.
+- Coverage: `test_from_to_print_only_dates_inside_range` (CLI), `test_range_variables_add_flags_and_filter_dates`, `test_in_range_gap_date_prints_no_sales`, `test_empty_or_unset_range_keeps_whole_file`, `test_only_one_bound_set`, `test_single_quotes_stripped_from_range_values`, `test_invalid_range_rejected_by_cli_not_n8n`, JSON/secret tests. Tester PASS (56 tests on the branch) including a real n8n 2.46.6 run with fake values: range set -> only 2025-01-02..03; empty -> all three dates; a quote-injection value was not executed as shell and the CLI rejected it (fails closed).
+- Risks: cron firing and a real Telegram send are still unverified; whitespace-only values count as non-empty and are rejected by the CLI (exit 2); an invalid date makes the workflow fail and send nothing; after changing `.env` the container must be recreated (`docker compose up -d`); the tester's build used the image tag `n8n-report-automation:local` and removed it afterwards, so the owner should rebuild with `docker compose build`.
+
+### T14: n8n execution data settings (done)
+- Done: `EXECUTIONS_DATA_SAVE_ON_SUCCESS: "none"` and `EXECUTIONS_DATA_SAVE_ON_ERROR: "none"` in docker-compose.yml with a comment (token is in the request URL); names and values checked against the n8n 2.46.6 image config (valid, not deprecated, default `all`); 'Execution data settings' section in docs/RUN.md (effect and undo). Tech lead removed the stale 'Optional' paragraph and the 'look at Executions' hint that contradicted the new setting (found by the tester).
+- Coverage: `test_docker_compose_config`, `test_execution_data_is_not_saved`, `test_run_docs_explain_execution_data_settings`. Tester PASS (49 tests on the branch).
+- Risks: with storage off, past runs cannot be inspected in the UI (debugging is harder); the token is still visible in live manual-run output; takes effect only after the container is recreated.
+
+Full checks after merging T13 and T14 into integration: `ruff check .` ok, `mypy src` ok, `pytest` 58 passed, `docker compose --env-file /dev/null config --quiet` rc 0.

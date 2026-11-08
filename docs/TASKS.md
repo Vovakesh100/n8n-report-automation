@@ -101,13 +101,13 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 - Do: check the workflow only uses nodes n8n supports; if n8n can be run in Docker Compose, import the workflow there; otherwise write exact steps for the owner and do not close the task.
 
 ## T13: --from/--to in the workflow command
-- Status: todo
+- Status: done
 - Depends on: T11, T12
 - Do: Run Report CLI passes `--from`/`--to` from REPORT_FROM/REPORT_TO; empty variables mean the whole file.
 - Acceptance: 1) with both set, the CLI prints only dates inside the range (test); 2) an in-range date without orders prints "no sales" (test); 3) empty variables keep the default behaviour (test); 4) workflow JSON valid, no secrets (test).
 
 ## T14: n8n execution data settings
-- Status: todo
+- Status: done
 - Depends on: T12
 - Do: add `EXECUTIONS_DATA_SAVE_ON_SUCCESS=none` and `EXECUTIONS_DATA_SAVE_ON_ERROR=none` to docker-compose.yml with a comment (the token can be in the request URL); explain in docs/RUN.md.
 - Acceptance: 1) `docker compose config` is valid; 2) both variables are in the file (test); 3) docs/RUN.md describes the effect and how to undo it.
