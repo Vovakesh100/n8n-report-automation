@@ -71,3 +71,9 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - **Q2 (chat id):** the owner put it in `.env`; it is never committed. Q6 is closed the same way (token and chat id set by the owner in `.env`; agents do not read or print the values).
 - **Q4 (date without orders):** show the line `no sales`. Decided by the owner. Applied in T11.
 - **Q8:** the owner performs the manual Docker/n8n verification; agents do what they can and write exact steps.
+
+### T9 (re-verified, accepted): Dockerfile build and run
+- Problem found: `docker.n8n.io` rate-limited (429); the Docker Hub image `n8nio/n8n` (2.46.6) is a Docker Hardened Image with no `apk` and no python3, so the earlier `apk add python3` Dockerfile could not work.
+- Fix: multi-stage Dockerfile, `FROM python:3.12-alpine AS python` + `FROM n8nio/n8n:2.46.6` + `COPY --from=python /usr/local /usr/local` + `USER node`. Both images are musl-based; python3 needs only libpython and musl for the stdlib modules the helper uses.
+- Verified by tester (PASS): `docker build -t t9-check .` ok (cached layers; developer's own build was cold), `python3 --version` -> 3.12.16, literal `sh -c 'PYTHONPATH=/app/src python3 -m report.cli /data/sample_sales.csv'` in the container prints the JSON, rc 0; `docker compose config` ok; 32 tests green.
+- Risks: tester's build used cached layers; `python:3.12-alpine` tag floats within 3.12; only tested on aarch64; `./n8n_data` ownership vs uid 1000 untested; n8n itself was not started.
