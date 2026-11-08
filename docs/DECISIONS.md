@@ -65,3 +65,9 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - Coverage: criterion 1 by `test_compose_is_well_formed_text`, `test_no_secret_shaped_strings`, `test_docker_compose_config` (real `docker compose config`, ran); 2 by `test_variables_are_references_only`, `test_env_example_has_names_with_empty_values`, `test_no_default_time_or_timezone`. Tester: all T9 criteria covered, 31 tests green.
 - Tester verdict was formally FAIL only because the optional `docker build` check could not run (Docker daemon not running). Tech lead accepted because both acceptance criteria are verified; the build is NOT verified.
 - Risks: `apk add python3` on `n8nio/n8n:latest` and its python3 version unverified; `:latest` unpinned; `./n8n_data` may be root-owned (container runs as uid 1000); empty `TZ`/`GENERIC_TIMEZONE` reach the container as empty strings; `TELEGRAM_*` are passed to the container but the workflow does not read them yet; `REPORT_CSV_PATH` is unused.
+
+## Session 3: decisions by the owner
+- **Q1 (send time):** 09:00 every day, time zone Europe/Chisinau. Decided by the owner. Applied in T10.
+- **Q2 (chat id):** the owner put it in `.env`; it is never committed. Q6 is closed the same way (token and chat id set by the owner in `.env`; agents do not read or print the values).
+- **Q4 (date without orders):** show the line `no sales`. Decided by the owner. Applied in T11.
+- **Q8:** the owner performs the manual Docker/n8n verification; agents do what they can and write exact steps.
