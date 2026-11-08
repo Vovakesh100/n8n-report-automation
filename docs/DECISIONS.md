@@ -54,3 +54,8 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 - Done: Run Report CLI node now runs `PYTHONPATH=/app/src python3 -m report.cli /data/sample_sales.csv` (no uv, absolute paths); decision and reasons are in the 'T7 decision' section above. Tech lead fixed a stale 'needs uv' line in OPEN-QUESTIONS.md found by the tester.
 - Coverage: criterion 1 by inspection of the T7 decision section; 2 by `test_command_matches_t7_decision`, `test_command_has_no_uv_cwd_dependence_or_placeholder`, `test_command_runs_from_any_directory`. Tester green (22 tests).
 - Risks (unverified, no Docker/n8n here): python3 availability/version in the n8n image (needs custom image, T9); that Execute Command uses a shell (needed for the `PYTHONPATH=` prefix); `NODES_EXCLUDE=[]` effect; the local test rewrites /app/src and /data, so it does not prove the container layout.
+
+### T8: Sample data and malformed rows (done)
+- Root cause: data issue. The CSV was 9 identical rows repeated for each of the 3 dates, so identical summaries were correct behaviour. Fixed by rewriting `data/sample_sales.csv` to 22 rows with per-day differences (now 11488 / 15244 / 17097 cents). `report.cli` now reports a short row as `error: cannot read <path>: line N: missing field(s): <names>` with exit 1 and no traceback.
+- Coverage: criterion 1 by `test_sample_dates_give_different_summaries` (T2 tests still pass); 2 by `test_short_row_reports_line_and_fails`. Tester green (21 tests on the branch; also green after merge with T7).
+- Risks: empty or header-only CSV prints `[]` with exit 0 (n8n would send an empty report); rows with extra fields are silently accepted; wrong header gives terse message (`'date'`); non-integer errors have no line number.

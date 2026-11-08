@@ -64,7 +64,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   2. The workflow command matches the decision; a test checks it.
 
 ## T8: Sample data and malformed rows
-- Status: todo
+- Status: done
 - Depends on: T6
 - Do: find out why all three dates give identical summaries; fix the data or document the cause. Handle an incomplete CSV row with a clear message and non-zero exit.
 - Acceptance:
