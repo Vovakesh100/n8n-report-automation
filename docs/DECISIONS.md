@@ -32,7 +32,7 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 ### T5: n8n workflow export (done)
 - Done: `workflows/daily_report.json` (Manual Trigger -> Read CSV -> Run Report CLI -> Format Message -> Send Telegram), placeholders only, manual trigger only (no schedule: Q1 is the owner's). `docs/OPEN-QUESTIONS.md` has a section listing the values the owner must set (send time/time zone, chat id, credential).
 - Coverage: criterion 1 by `test_valid_json_with_nodes_and_connections`, `test_manual_trigger_only`, `test_chain_ends_in_telegram_and_runs_cli`; 2 by `test_no_token_shaped_string`, `test_chat_id_and_credentials_are_placeholders`; 3 by inspection of OPEN-QUESTIONS.md. Tester green (17 tests).
-- Risks: NOT verified in a real n8n instance (structure only; node typeVersions unconfirmed). Read CSV node is redundant (CLI reads the file itself). Execute Command needs `uv` and the repo in the n8n container and may be disabled by default in recent n8n (`NODES_EXCLUDE`); no docker-compose yet. Format Message code node uses `/100` + `toFixed(2)` for display, a float step in the workflow (CLAUDE.md bans floats for amounts; Python helper is clean). Q4 (no-orders display) not handled. Sample data gives identical totals on all 3 dates.
+- Risks: NOT verified in a real n8n instance (structure only; node typeVersions unconfirmed). Read CSV node is redundant (CLI reads the file itself). Execute Command needs `uv` and the repo in the n8n container and may be disabled by default in recent n8n (`NODES_EXCLUDE`); no docker-compose yet. Format Message code node uses `/100` + `toFixed(2)` for display, a float step in the workflow (project rules ban floats for amounts; Python helper is clean). Q4 (no-orders display) not handled. Sample data gives identical totals on all 3 dates.
 
 ## Session 2
 - T5 status changed to blocked: `.env` values for Telegram are empty (owner fills them manually). The workflow file itself stays as accepted; only a live send is blocked.
@@ -109,6 +109,6 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 Full checks after merging T13 and T14 into integration: `ruff check .` ok, `mypy src` ok, `pytest` 58 passed, `docker compose --env-file /dev/null config --quiet` rc 0.
 
 ### T15: Repository cleanup (done)
-- Done: all service worktrees (`.claude/worktrees/*` and scratchpad ones) removed with `git worktree remove`; local branch `task/T8-data-malformed` deleted. `git worktree list` shows only the main working copy; `git status` is clean.
+- Done: all service worktrees (agent worktrees and scratchpad ones) removed with `git worktree remove`; local branch `task/T8-data-malformed` deleted. `git worktree list` shows only the main working copy; `git status` is clean.
 - Verified by tester (PASS): worktree list, branch absent, clean status; final checks on integration: ruff ok, mypy ok, 58 tests passed, `docker compose config` rc 0 with the execution-data and REPORT_FROM/REPORT_TO variables; local integration == origin/integration; origin/main unchanged (`b66b591`); `.env` untracked and ignored; no token-shaped strings or chat ids in tracked files.
 - Left on purpose: local branches `worktree-agent-*` and `task/T8-data-malformed-wt` (created by agent worktrees; their content is on the pushed task branches). The owner can delete them with `git branch -D`.

@@ -115,5 +115,5 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 ## T15: Repository cleanup
 - Status: done
 - Depends on: T13, T14
-- Do: remove service worktrees under `.claude/worktrees/` and the local branch `task/T8-data-malformed`.
+- Do: remove service worktrees and the local branch `task/T8-data-malformed`.
 - Acceptance: `git worktree list` shows only the main working copy.
