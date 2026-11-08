@@ -135,3 +135,11 @@ def test_invalid_date_args(capsys, tmp_path, args) -> None:  # type: ignore[no-u
     assert code != 0
     assert captured.err.startswith("error:")
     assert captured.out == ""
+
+
+def test_from_to_print_only_dates_inside_range(capsys, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    path = _csv(tmp_path, ["2025-01-01", "2025-01-03", "2025-01-06", "2025-01-09"])
+    assert main([str(path), "--from", "2025-01-02", "--to", "2025-01-05"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert [e["date"] for e in data] == ["2025-01-02", "2025-01-03", "2025-01-04", "2025-01-05"]
+    assert [e["orders"] for e in data] == [0, 1, 0, 0]

@@ -147,8 +147,13 @@ def test_format_message_no_sales_line(tmp_path: Path) -> None:
     assert "2025-01-01: revenue 171.83, orders 2, top product Widget" in lines
 
 
-EXPRESSION = "{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}"
-EXPECTED_COMMAND = f"=PYTHONPATH=/app/src python3 -m report.cli '{EXPRESSION}'"
+CSV_EXPRESSION = "{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}"
+FROM_EXPRESSION = "{{ $env.REPORT_FROM ? \" --from '\" + String($env.REPORT_FROM).replace(/'/g, '') + \"'\" : '' }}"
+TO_EXPRESSION = "{{ $env.REPORT_TO ? \" --to '\" + String($env.REPORT_TO).replace(/'/g, '') + \"'\" : '' }}"
+EXPECTED_COMMAND = (
+    f"=PYTHONPATH=/app/src python3 -m report.cli '{CSV_EXPRESSION}'{FROM_EXPRESSION}{TO_EXPRESSION}"
+)
+SAMPLE = ROOT / "data" / "sample_sales.csv"
 
 
 def _command() -> str:
@@ -158,7 +163,33 @@ def _command() -> str:
     return command
 
 
-def test_command_matches_t7_form_with_env_csv_path() -> None:
+def _render(tmp_path: Path, env: dict[str, str]) -> str:
+    """Evaluate the {{ }} expressions of the command with node, like n8n does for $env."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    harness = (
+        "const env = JSON.parse(process.argv[3]);\n"
+        "const t = process.argv[2].replace(/^=/, '');\n"
+        "const out = t.replace(/\\{\\{(.*?)\\}\\}/g, (m, e) => String(new Function('$env', 'return (' + e + ')')(env)));\n"
+        "process.stdout.write(out);\n"
+    )
+    script = tmp_path / "render.js"
+    script.write_text(harness, encoding="utf-8")
+    result = subprocess.run(
+        [node, str(script), _command(), json.dumps(env)], capture_output=True, text=True, check=True
+    )
+    return result.stdout
+
+
+def _run(tmp_path: Path, env: dict[str, str], csv_path: Path = SAMPLE) -> Any:
+    env = {"REPORT_CSV_PATH": str(csv_path), **env}
+    command = _render(tmp_path, env).replace("/app/src", str(ROOT / "src"))
+    result = subprocess.run(command, shell=True, cwd=tmp_path, capture_output=True, text=True, check=True)
+    return json.loads(result.stdout)
+
+
+def test_command_matches_t7_form_with_env_csv_path_and_range() -> None:
     assert _command() == EXPECTED_COMMAND
 
 
@@ -167,14 +198,88 @@ def test_command_has_no_uv_cwd_dependence_or_placeholder() -> None:
     assert "uv" not in command.split()
     assert "REPLACE" not in command
     assert "PYTHONPATH=/app/src " in command  # absolute source dir, not relative to the cwd
-    assert f"'{EXPRESSION}'" in command  # path is single-quoted for the shell
-    assert "'/data/sample_sales.csv'" in EXPRESSION  # non-secret default when the variable is empty
+    assert f"'{CSV_EXPRESSION}'" in command  # path is single-quoted for the shell
+    assert "'/data/sample_sales.csv'" in CSV_EXPRESSION  # non-secret default when the variable is empty
 
 
-@pytest.mark.parametrize("env_value", ["", str(ROOT / "data" / "sample_sales.csv")])
+def test_env_range_variables_referenced_via_env() -> None:
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "$env.REPORT_FROM" in text and "$env.REPORT_TO" in text
+
+
+@pytest.mark.parametrize("env_value", ["", str(SAMPLE)])
 def test_command_runs_from_any_directory(tmp_path: Path, env_value: str) -> None:
-    # Emulate the n8n expression: the env value, or the default path when it is empty.
-    path = env_value or str(ROOT / "data" / "sample_sales.csv")
-    command = _command().removeprefix("=").replace(EXPRESSION, path).replace("/app/src", str(ROOT / "src"))
+    env = {"REPORT_CSV_PATH": env_value}
+    command = _render(tmp_path, env).replace("/app/src", str(ROOT / "src"))
+    if not env_value:
+        command = command.replace("/data/sample_sales.csv", str(SAMPLE))
     result = subprocess.run(command, shell=True, cwd=tmp_path, capture_output=True, text=True, check=True)
     assert isinstance(json.loads(result.stdout), list)
+
+
+@pytest.mark.parametrize("env", [{}, {"REPORT_FROM": "", "REPORT_TO": ""}])
+def test_empty_or_unset_range_keeps_whole_file(tmp_path: Path, env: dict[str, str]) -> None:
+    rendered = _render(tmp_path, {"REPORT_CSV_PATH": "/x.csv", **env})
+    assert "--from" not in rendered and "--to" not in rendered
+    assert rendered == "PYTHONPATH=/app/src python3 -m report.cli '/x.csv'"
+    dates = sorted({ln.split(",")[0] for ln in SAMPLE.read_text().splitlines()[1:] if ln})
+    assert [e["date"] for e in _run(tmp_path, env)] == dates
+
+
+def test_range_variables_add_flags_and_filter_dates(tmp_path: Path) -> None:
+    csv_path = tmp_path / "s.csv"
+    csv_path.write_text(
+        "date,product,quantity,unit_price_cents\n"
+        "2025-01-01,Widget,1,100\n"
+        "2025-01-03,Widget,2,100\n"
+        "2025-01-06,Widget,1,100\n"
+        "2025-01-09,Widget,1,100\n",
+        encoding="utf-8",
+    )
+    env = {"REPORT_FROM": "2025-01-02", "REPORT_TO": "2025-01-05"}
+    rendered = _render(tmp_path, {"REPORT_CSV_PATH": "/x.csv", **env})
+    assert rendered.endswith(" --from '2025-01-02' --to '2025-01-05'")
+    data = _run(tmp_path, env, csv_path)
+    assert [e["date"] for e in data] == ["2025-01-02", "2025-01-03", "2025-01-04", "2025-01-05"]
+    assert [e["orders"] for e in data] == [0, 1, 0, 0]
+
+
+def test_only_one_bound_set(tmp_path: Path) -> None:
+    rendered = _render(tmp_path, {"REPORT_CSV_PATH": "/x.csv", "REPORT_TO": "2025-01-05"})
+    assert rendered.endswith("'/x.csv' --to '2025-01-05'")
+    assert "--from" not in rendered
+
+
+def test_single_quotes_stripped_from_range_values(tmp_path: Path) -> None:
+    rendered = _render(tmp_path, {"REPORT_CSV_PATH": "/x.csv", "REPORT_FROM": "2025-01-01'; rm -rf /; '"})
+    assert rendered.endswith(" --from '2025-01-01; rm -rf /; '")
+    assert rendered.count("'") == 4  # only the path quotes and the flag value quotes remain
+
+
+def test_invalid_range_rejected_by_cli_not_n8n(tmp_path: Path) -> None:
+    env = {"REPORT_CSV_PATH": str(SAMPLE), "REPORT_FROM": "2025-13-01"}
+    command = _render(tmp_path, env).replace("/app/src", str(ROOT / "src"))
+    result = subprocess.run(command, shell=True, cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert result.returncode == 2
+    assert result.stdout == ""
+
+
+def test_in_range_gap_date_prints_no_sales(tmp_path: Path) -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    csv_path = tmp_path / "s.csv"
+    csv_path.write_text("date,product,quantity,unit_price_cents\n2025-01-03,Widget,2,100\n", encoding="utf-8")
+    data = _run(tmp_path, {"REPORT_FROM": "2025-01-02", "REPORT_TO": "2025-01-03"}, csv_path)
+    assert data[0]["orders"] == 0
+    harness = (
+        "const fn = new Function('$input', process.argv[2]);\n"
+        "const stdout = process.argv[3];\n"
+        "console.log(fn({first: () => ({json: {stdout}})})[0].json.text);\n"
+    )
+    script = tmp_path / "h3.js"
+    script.write_text(harness, encoding="utf-8")
+    out = subprocess.run(
+        [node, str(script), _format_code(), json.dumps(data)], capture_output=True, text=True, check=True
+    )
+    assert "2025-01-02: no sales" in out.stdout.splitlines()

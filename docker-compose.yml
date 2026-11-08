@@ -12,6 +12,8 @@ services:
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
       # Values come from .env (copy .env.example), passed as references only.
       REPORT_CSV_PATH: ${REPORT_CSV_PATH}
+      REPORT_FROM: ${REPORT_FROM}
+      REPORT_TO: ${REPORT_TO}
       GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
       TZ: ${TZ}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
