@@ -72,7 +72,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   2. A test covers a short CSV row: clear stderr message, non-zero exit.
 
 ## T9: docker-compose for n8n
-- Status: todo
+- Status: done
 - Depends on: T7
 - Do: add `docker-compose.yml` with n8n for local runs, variables from `.env`, no real keys.
 - Acceptance:
