@@ -78,3 +78,24 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 - Acceptance:
   1. The file is valid YAML and contains no secrets.
   2. Variables come from `.env` / `.env.example`.
+
+## T9b: Working Dockerfile
+- Status: done
+- Note: the first T9 Dockerfile (`apk add python3`) could not work on the Hardened n8n image; fixed with a multi-stage build. See docs/DECISIONS.md.
+
+## T10: Env-driven workflow and schedule
+- Status: done
+- Depends on: T9
+- Do: workflow reads token, chat id and CSV path from TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, REPORT_CSV_PATH; schedule 09:00 Europe/Chisinau (Q1); manual trigger kept.
+- Acceptance: JSON valid; no hardcoded token or chat id; all parameters come from variables; cron and timezone as decided.
+
+## T11: "no sales" line (Q4)
+- Status: todo
+- Depends on: T10
+- Do: a date without orders is shown as the line `<date>: no sales`.
+- Acceptance: tests for an empty date and for a date with orders.
+
+## T12: n8n compatibility check
+- Status: todo
+- Depends on: T10, T11
+- Do: check the workflow only uses nodes n8n supports; if n8n can be run in Docker Compose, import the workflow there; otherwise write exact steps for the owner and do not close the task.
