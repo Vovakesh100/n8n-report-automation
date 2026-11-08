@@ -92,3 +92,35 @@ def test_format_message_formats_cents_with_node(tmp_path: Path) -> None:
     texts = json.loads(result.stdout)
     for cents, expected in cases.items():
         assert f"revenue {expected}," in texts[str(cents)]
+
+
+EXPECTED_COMMAND = "PYTHONPATH=/app/src python3 -m report.cli /data/sample_sales.csv"
+
+
+def _command() -> str:
+    for node in load()["nodes"]:
+        if node["name"] == "Run Report CLI":
+            assert node["type"] == "n8n-nodes-base.executeCommand"
+            command: str = node["parameters"]["command"]
+            return command
+    raise AssertionError("Run Report CLI node not found")
+
+
+def test_command_matches_t7_decision() -> None:
+    assert _command() == EXPECTED_COMMAND
+
+
+def test_command_has_no_uv_cwd_dependence_or_placeholder() -> None:
+    command = _command()
+    assert "uv" not in command.split()
+    assert "REPLACE" not in command
+    assert "PYTHONPATH=/" in command  # absolute source dir, not relative to the cwd
+    assert command.split()[-1].startswith("/")  # absolute CSV path
+
+
+def test_command_runs_from_any_directory(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parent.parent
+    command = _command().replace("/app/src", str(root / "src"))
+    command = command.replace("/data/sample_sales.csv", str(root / "data" / "sample_sales.csv"))
+    result = subprocess.run(command, shell=True, cwd=tmp_path, capture_output=True, text=True, check=True)
+    assert isinstance(json.loads(result.stdout), list)
