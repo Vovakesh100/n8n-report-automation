@@ -15,7 +15,7 @@ The committed workflow has a manual trigger only. No schedule and no real chat i
 - Q1 (send time and time zone): add a Schedule Trigger node (or replace "Manual Trigger") with the chosen time, and set the workflow time zone in n8n Workflow Settings. Connect it to the "Read CSV" node.
 - Q2 (chat id): in the "Send Telegram" node, replace `REPLACE_WITH_TELEGRAM_CHAT_ID` in the Chat ID field.
 - Telegram credential: in the "Send Telegram" node, select your own Telegram API credential (bot token created in n8n, never committed). Placeholder name is `REPLACE_WITH_TELEGRAM_CREDENTIAL_NAME`.
-- Paths: "Read CSV" and "Run Report CLI" use `/data/sample_sales.csv` (local folder, D1). Adjust to the mounted path. The Execute Command node needs `uv` and the project available where n8n runs.
+- Paths: "Read CSV" and "Run Report CLI" use `/data/sample_sales.csv` (local folder, D1). Adjust to the mounted path. The Execute Command node needs `python3` in the n8n container, `./src` mounted at `/app/src`, `./data` mounted at `/data`, and `NODES_EXCLUDE=[]` (see item 7 and the T7 decision; no `uv` needed).
 - Q4 (no-orders display) is not handled: the message lists only dates present in the CLI output.
 
 6. **Telegram credentials needed (blocks a real send for T5).** `.env` was created from `.env.example` and is git-ignored, but `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are empty. The owner must fill them in `.env` by hand and create the Telegram credential in n8n. Agents do not write these values.

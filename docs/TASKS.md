@@ -56,7 +56,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   3. Existing tests pass.
 
 ## T7: Execute Command requirements
-- Status: todo
+- Status: done
 - Depends on: T6
 - Do: determine what the n8n Execute Command node needs (uv in the container, or a call without uv); document the decision and fix the workflow.
 - Acceptance:
