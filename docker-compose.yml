@@ -1,0 +1,20 @@
+services:
+  n8n:
+    build: .
+    image: n8n-report-automation:local
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # Enable the Execute Command node (disabled by default in n8n 2.x).
+      NODES_EXCLUDE: "[]"
+      # Values come from .env (copy .env.example). No defaults are set here:
+      # send time and time zone are an open owner decision (Q1).
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+      TZ: ${TZ}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    volumes:
+      - ./src:/app/src:ro
+      - ./data:/data:ro
+      - ./n8n_data:/home/node/.n8n
