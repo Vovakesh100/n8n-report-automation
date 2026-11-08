@@ -7,3 +7,13 @@ Agents write questions here instead of deciding. The owner answers in this file 
 3. Should the CSV file be read from a local folder, or from a URL? Default proposal: local folder. **Decided by tech lead: local folder** (see docs/DECISIONS.md D1).
 4. What should the report show if a date has no orders: a line saying "no sales" or no line at all?
 5. Should the top product be chosen by revenue or by quantity? Default proposal: revenue. **Decided by tech lead: revenue** (see docs/DECISIONS.md D2).
+
+## Values the owner must set in `workflows/daily_report.json` (T5)
+
+The committed workflow has a manual trigger only. No schedule and no real chat id are committed.
+
+- Q1 (send time and time zone): add a Schedule Trigger node (or replace "Manual Trigger") with the chosen time, and set the workflow time zone in n8n Workflow Settings. Connect it to the "Read CSV" node.
+- Q2 (chat id): in the "Send Telegram" node, replace `REPLACE_WITH_TELEGRAM_CHAT_ID` in the Chat ID field.
+- Telegram credential: in the "Send Telegram" node, select your own Telegram API credential (bot token created in n8n, never committed). Placeholder name is `REPLACE_WITH_TELEGRAM_CREDENTIAL_NAME`.
+- Paths: "Read CSV" and "Run Report CLI" use `/data/sample_sales.csv` (local folder, D1). Adjust to the mounted path. The Execute Command node needs `uv` and the project available where n8n runs.
+- Q4 (no-orders display) is not handled: the message lists only dates present in the CLI output.
