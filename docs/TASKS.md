@@ -20,7 +20,7 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   2. A test reads the file and checks that every `unit_price_cents` is a non-negative integer.
 
 ## T3: Daily summary function
-- Status: todo
+- Status: done
 - Depends on: T2
 - Do: in `src/report/summary.py`, write a pure function that takes rows for one date and returns total revenue in cents, count of orders, and the top product by revenue.
 - Acceptance:
