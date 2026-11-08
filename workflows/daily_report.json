@@ -11,23 +11,25 @@
     },
     {
       "parameters": {
-        "fileSelector": "/data/sample_sales.csv"
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }]
+        }
       },
-      "id": "22222222-2222-4222-8222-222222222222",
-      "name": "Read CSV",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [220, 0]
+      "id": "66666666-6666-4666-8666-666666666666",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
     },
     {
       "parameters": {
-        "command": "PYTHONPATH=/app/src python3 -m report.cli /data/sample_sales.csv"
+        "command": "=PYTHONPATH=/app/src python3 -m report.cli '{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}'"
       },
       "id": "33333333-3333-4333-8333-333333333333",
       "name": "Run Report CLI",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [440, 0]
+      "position": [220, 100]
     },
     {
       "parameters": {
@@ -37,32 +39,33 @@
       "name": "Format Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, 0]
+      "position": [440, 100]
     },
     {
       "parameters": {
-        "chatId": "REPLACE_WITH_TELEGRAM_CHAT_ID",
-        "text": "={{ $json.text }}",
-        "additionalFields": {}
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "chat_id", "value": "={{ $env.TELEGRAM_CHAT_ID }}" },
+            { "name": "text", "value": "={{ $json.text }}" }
+          ]
+        },
+        "options": {}
       },
       "id": "55555555-5555-4555-8555-555555555555",
       "name": "Send Telegram",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [880, 0],
-      "credentials": {
-        "telegramApi": {
-          "id": "REPLACE_WITH_CREDENTIAL_ID",
-          "name": "REPLACE_WITH_TELEGRAM_CREDENTIAL_NAME"
-        }
-      }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 100]
     }
   ],
   "connections": {
     "Manual Trigger": {
-      "main": [[{ "node": "Read CSV", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Run Report CLI", "type": "main", "index": 0 }]]
     },
-    "Read CSV": {
+    "Schedule Trigger": {
       "main": [[{ "node": "Run Report CLI", "type": "main", "index": 0 }]]
     },
     "Run Report CLI": {
@@ -73,6 +76,6 @@
     }
   },
   "active": false,
-  "settings": { "executionOrder": "v1" },
+  "settings": { "executionOrder": "v1", "timezone": "Europe/Chisinau" },
   "pinData": {}
 }

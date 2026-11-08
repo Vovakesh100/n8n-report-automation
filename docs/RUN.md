@@ -7,8 +7,10 @@
    `python:3.12-alpine` (the n8n image has no `apk` or python).
    n8n state is stored in `./n8n_data`. Open http://localhost:5678.
 3. In n8n, import `workflows/daily_report.json` (Workflows, Import from file).
-4. Create a Telegram API credential in n8n with your bot token, select it in the
-   "Send Telegram" node, and set the Chat ID there.
-5. Run the workflow manually. The Execute Command node runs
-   `PYTHONPATH=/app/src python3 -m report.cli /data/sample_sales.csv`; `./src` and `./data`
-   are mounted read-only at `/app/src` and `/data`.
+4. No n8n credential is needed: the "Send Telegram" HTTP Request node reads
+   `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` from the environment (set in `.env`).
+5. Run the workflow manually, or wait for the Schedule Trigger (09:00 every day,
+   Europe/Chisinau). The Execute Command node runs
+   `PYTHONPATH=/app/src python3 -m report.cli '<REPORT_CSV_PATH or /data/sample_sales.csv>'`;
+   `./src` and `./data` are mounted read-only at `/app/src` and `/data`. Activate the
+   workflow in n8n for the schedule to fire.
