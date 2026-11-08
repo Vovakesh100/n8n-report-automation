@@ -81,3 +81,16 @@ def test_docker_compose_config(tmp_path: Path) -> None:
 
 def test_env_access_in_nodes_is_enabled() -> None:
     assert 'N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"' in COMPOSE
+
+
+def test_execution_data_is_not_saved() -> None:
+    for name in ("EXECUTIONS_DATA_SAVE_ON_SUCCESS", "EXECUTIONS_DATA_SAVE_ON_ERROR"):
+        assert re.search(rf'^      {name}: "none"$', COMPOSE, re.MULTILINE), name
+
+
+def test_run_docs_explain_execution_data_settings() -> None:
+    docs = (ROOT / "docs" / "RUN.md").read_text()
+    section = docs.split("## Execution data settings", 1)[1]
+    assert "EXECUTIONS_DATA_SAVE_ON_SUCCESS" in section
+    assert "EXECUTIONS_DATA_SAVE_ON_ERROR" in section
+    assert "Undo" in section and "`all`" in section and "docker compose up -d" in section

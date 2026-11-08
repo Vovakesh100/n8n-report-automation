@@ -37,3 +37,15 @@ data (UI and `./n8n_data`). To avoid storing it, add to the `environment:` secti
 `docker-compose.yml`: `EXECUTIONS_DATA_SAVE_ON_SUCCESS: none` and `EXECUTIONS_DATA_SAVE_ON_ERROR: none`
 (the Executions list then keeps no data to inspect). If the token was ever shown or leaked, revoke it
 in BotFather and set a new one.
+
+## Execution data settings
+`docker-compose.yml` sets `EXECUTIONS_DATA_SAVE_ON_SUCCESS: "none"` and
+`EXECUTIONS_DATA_SAVE_ON_ERROR: "none"` (names and values checked against the n8n 2.46.6 image).
+
+Effect: n8n does not store execution data for scheduled or finished runs. The Executions list in the
+UI is empty or has no data to inspect, so debugging a past run is harder. The Telegram bot token is
+part of the Send Telegram request URL, so it no longer lands in stored execution data (UI and
+`./n8n_data`). It can still be seen in the live output of a manual run in the editor.
+
+Undo: remove both lines from `docker-compose.yml`, or set both values to `all`, then run
+`docker compose up -d` to recreate the container. Runs from then on are stored again.
