@@ -14,3 +14,26 @@
    `PYTHONPATH=/app/src python3 -m report.cli '<REPORT_CSV_PATH or /data/sample_sales.csv>'`;
    `./src` and `./data` are mounted read-only at `/app/src` and `/data`. Activate the
    workflow in n8n for the schedule to fire.
+
+## Owner checklist
+Verified in T12 with n8n 2.46.6 in Docker (CLI import and execute, fake token). Not verified there:
+import through the UI, the 09:00 firing, a real Telegram send. Do these steps once:
+
+1. Fill `.env` by hand (`cp .env.example .env`, then set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
+   `GENERIC_TIMEZONE`, `TZ`). Run `docker compose up --build -d`, open http://localhost:5678, create the
+   owner account, then Workflows, Import from file, choose `workflows/daily_report.json`.
+2. Open the workflow, click "Execute workflow" (Manual Trigger). Run Report CLI and Format Message
+   must turn green, then Send Telegram sends the message.
+3. Check the Telegram chat: it must contain "Daily sales report" and one line per date
+   (`2025-01-01: revenue 114.88, orders 7, top product gadget` for the sample data).
+4. If it works, turn on the "Active" switch (top right) so the Schedule Trigger fires every day at
+   09:00 (Europe/Chisinau). After the first 09:00, look at Executions to confirm the run.
+
+The token and chat id are never printed in reports; agents do not read `.env`. Do not paste them
+into issues or chat either.
+
+Optional: the token is part of the Send Telegram request URL, so it can appear in stored execution
+data (UI and `./n8n_data`). To avoid storing it, add to the `environment:` section of
+`docker-compose.yml`: `EXECUTIONS_DATA_SAVE_ON_SUCCESS: none` and `EXECUTIONS_DATA_SAVE_ON_ERROR: none`
+(the Executions list then keeps no data to inspect). If the token was ever shown or leaked, revoke it
+in BotFather and set a new one.
