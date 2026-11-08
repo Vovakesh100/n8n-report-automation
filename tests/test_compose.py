@@ -10,7 +10,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 COMPOSE = (ROOT / "docker-compose.yml").read_text()
 ENV_EXAMPLE = (ROOT / ".env.example").read_text()
-NAMES = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "REPORT_CSV_PATH", "GENERIC_TIMEZONE", "TZ"]
+NAMES = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "REPORT_CSV_PATH", "REPORT_FROM", "REPORT_TO", "GENERIC_TIMEZONE", "TZ"]
 
 
 def test_compose_is_well_formed_text() -> None:

@@ -23,7 +23,7 @@
     },
     {
       "parameters": {
-        "command": "=PYTHONPATH=/app/src python3 -m report.cli '{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}'"
+        "command": "=PYTHONPATH=/app/src python3 -m report.cli '{{ $env.REPORT_CSV_PATH || '/data/sample_sales.csv' }}'{{ $env.REPORT_FROM ? \" --from '\" + String($env.REPORT_FROM).replace(/'/g, '') + \"'\" : '' }}{{ $env.REPORT_TO ? \" --to '\" + String($env.REPORT_TO).replace(/'/g, '') + \"'\" : '' }}"
       },
       "id": "33333333-3333-4333-8333-333333333333",
       "name": "Run Report CLI",

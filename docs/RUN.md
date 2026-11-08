@@ -13,7 +13,7 @@
    Europe/Chisinau). The Execute Command node runs
    `PYTHONPATH=/app/src python3 -m report.cli '<REPORT_CSV_PATH or /data/sample_sales.csv>'`;
    `./src` and `./data` are mounted read-only at `/app/src` and `/data`. Activate the
-   workflow in n8n for the schedule to fire.
+   workflow in n8n for the schedule to fire. Optional `REPORT_FROM` / `REPORT_TO` (YYYY-MM-DD) in `.env` add `--from` / `--to` to that command; empty means the whole file.
 
 ## Owner checklist
 Verified in T12 with n8n 2.46.6 in Docker (CLI import and execute, fake token). Not verified there:
