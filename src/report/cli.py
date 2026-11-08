@@ -12,16 +12,24 @@ from report.summary import SaleRow, summarize
 
 
 def read_rows(path: str) -> list[SaleRow]:
+    rows: list[SaleRow] = []
     with open(path, newline="", encoding="utf-8") as handle:
-        return [
-            SaleRow(
-                date=r["date"],
-                product=r["product"],
-                quantity=int(r["quantity"]),
-                unit_price_cents=int(r["unit_price_cents"]),
+        reader = csv.DictReader(handle)
+        for r in reader:
+            missing = [k for k, v in r.items() if v is None]
+            if missing:
+                raise ValueError(
+                    f"line {reader.line_num}: missing field(s): {', '.join(missing)}"
+                )
+            rows.append(
+                SaleRow(
+                    date=r["date"],
+                    product=r["product"],
+                    quantity=int(r["quantity"]),
+                    unit_price_cents=int(r["unit_price_cents"]),
+                )
             )
-            for r in csv.DictReader(handle)
-        ]
+    return rows
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -34,7 +42,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"error: file not found: {args.csv_path}", file=sys.stderr)
         return 2
     except (OSError, KeyError, ValueError) as exc:
-        print(f"error: cannot read {args.csv_path}: {exc!r}", file=sys.stderr)
+        print(f"error: cannot read {args.csv_path}: {exc}", file=sys.stderr)
         return 1
     by_date: dict[str, list[SaleRow]] = defaultdict(list)
     for row in rows:
