@@ -40,8 +40,21 @@ def test_t7_requirements() -> None:
     assert "./data:/data:ro" in COMPOSE
     assert "./n8n_data:" in COMPOSE
     dockerfile = (ROOT / "Dockerfile").read_text()
-    assert "apk add --no-cache python3" in dockerfile
     assert dockerfile.rstrip().endswith("USER node")
+
+
+def test_dockerfile_pins_versions_and_has_no_apk() -> None:
+    dockerfile = (ROOT / "Dockerfile").read_text()
+    code = [ln for ln in dockerfile.splitlines() if not ln.lstrip().startswith("#")]
+    assert not any("apk add" in ln for ln in code)
+    froms = [ln.split()[1] for ln in code if ln.startswith("FROM ")]
+    assert len(froms) == 2
+    for image in froms:
+        assert ":" in image and not image.endswith(":latest"), image
+    n8n = [i for i in froms if "n8nio/n8n" in i]
+    assert n8n and re.fullmatch(r"n8nio/n8n:\d+\.\d+\.\d+", n8n[0]), n8n
+    assert not any("docker.n8n.io" in ln for ln in code)
+    assert "COPY --from=" in dockerfile and "/usr/local" in dockerfile
 
 
 def test_env_example_has_names_with_empty_values() -> None:

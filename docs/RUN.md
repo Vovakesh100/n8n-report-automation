@@ -3,7 +3,8 @@
 1. Copy the variable names: `cp .env.example .env`. Fill in the values by hand in `.env`
    (bot token, chat id, time zone). `.env` is git-ignored; never commit it.
    The time zone is not chosen by this repo (open question Q1).
-2. Start n8n: `docker compose up --build`. The first run builds a small image with `python3`.
+2. Start n8n: `docker compose up --build`. The first run builds a small image: pinned `n8nio/n8n` (Docker Hub) with `python3` copied from
+   `python:3.12-alpine` (the n8n image has no `apk` or python).
    n8n state is stored in `./n8n_data`. Open http://localhost:5678.
 3. In n8n, import `workflows/daily_report.json` (Workflows, Import from file).
 4. Create a Telegram API credential in n8n with your bot token, select it in the
