@@ -3,7 +3,7 @@
 Status values: `todo`, `in-progress`, `blocked`, `done`.
 
 ## T1: Project skeleton
-- Status: todo
+- Status: done
 - Depends on: none
 - Do: create `pyproject.toml` (Python 3.12, uv, ruff, mypy, pytest), `src/report/__init__.py`, `tests/`, `.gitignore`, `.env.example` with variable names only.
 - Acceptance:
