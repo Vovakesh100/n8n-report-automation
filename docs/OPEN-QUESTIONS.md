@@ -25,3 +25,5 @@ The committed workflow has a manual trigger only. No schedule and no real chat i
 8. **Verify the Docker build manually.** Start Docker Desktop, then run `docker build -t t9-check .` and `docker run --rm --entrypoint python3 t9-check --version`. If `apk add python3` fails on the current n8n image, T9 needs a different base (multi-stage build). Then import `workflows/daily_report.json` into n8n and run it once.
 
 **Status update (session 3):** Q1 answered: 09:00 Europe/Chisinau. Q2 and Q6 answered: values are in `.env` (not committed). Q4 answered: show `no sales`. Q8: owner verifies Docker/n8n manually. See docs/DECISIONS.md.
+
+9. **Owner steps remaining (Q8):** follow 'Owner checklist' in docs/RUN.md: start compose with the real `.env`, import `workflows/daily_report.json` in the UI, run it manually, check the Telegram message, activate for 09:00 Europe/Chisinau. Optional follow-up: pass `--from/--to` in the Run Report CLI command if 'yesterday without data' should print `no sales` (see T11 risks), and decide on `EXECUTIONS_DATA_SAVE_*`.

@@ -96,6 +96,6 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
 - Acceptance: tests for an empty date and for a date with orders.
 
 ## T12: n8n compatibility check
-- Status: todo
+- Status: done (technical check in Docker; owner steps in docs/RUN.md 'Owner checklist' remain)
 - Depends on: T10, T11
 - Do: check the workflow only uses nodes n8n supports; if n8n can be run in Docker Compose, import the workflow there; otherwise write exact steps for the owner and do not close the task.
