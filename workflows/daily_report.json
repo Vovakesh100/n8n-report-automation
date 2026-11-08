@@ -31,7 +31,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const summaries = JSON.parse($input.first().json.stdout);\nconst lines = summaries.map((s) => {\n  const total = (s.total_revenue_cents / 100).toFixed(2);\n  return `${s.date}: revenue ${total}, orders ${s.orders}, top product ${s.top_product}`;\n});\nreturn [{ json: { text: ['Daily sales report', ...lines].join('\\n') } }];"
+        "jsCode": "const summaries = JSON.parse($input.first().json.stdout);\nconst lines = summaries.map((s) => {\n  const cents = s.total_revenue_cents;\n  const abs = cents < 0 ? -cents : cents;\n  const rem = abs % 100;\n  const total = `${cents < 0 ? '-' : ''}${(abs - rem) / 100}.${rem < 10 ? '0' : ''}${rem}`;\n  return `${s.date}: revenue ${total}, orders ${s.orders}, top product ${s.top_product}`;\n});\nreturn [{ json: { text: ['Daily sales report', ...lines].join('\\n') } }];"
       },
       "id": "44444444-4444-4444-8444-444444444444",
       "name": "Format Message",
