@@ -45,3 +45,36 @@ Status values: `todo`, `in-progress`, `blocked`, `done`.
   1. The JSON is valid and loads in n8n.
   2. The workflow has no real token or chat id; they are placeholders.
   3. `docs/OPEN-QUESTIONS.md` lists the schedule time and chat id the owner must set.
+
+## T6: Integer money formatting in workflow
+- Status: done
+- Depends on: T5
+- Do: replace `/100` + `toFixed(2)` in the Format Message node with integer division and remainder.
+- Acceptance:
+  1. The node code has no `toFixed` or float division for amounts.
+  2. A test runs the node code (via node, skipped if absent) for 0, 5, 100, 17183, 100000.
+  3. Existing tests pass.
+
+## T7: Execute Command requirements
+- Status: todo
+- Depends on: T6
+- Do: determine what the n8n Execute Command node needs (uv in the container, or a call without uv); document the decision and fix the workflow.
+- Acceptance:
+  1. The decision and its reason are in `docs/DECISIONS.md`.
+  2. The workflow command matches the decision; a test checks it.
+
+## T8: Sample data and malformed rows
+- Status: todo
+- Depends on: T6
+- Do: find out why all three dates give identical summaries; fix the data or document the cause. Handle an incomplete CSV row with a clear message and non-zero exit.
+- Acceptance:
+  1. Dates in the sample data give different results, or the cause is documented.
+  2. A test covers a short CSV row: clear stderr message, non-zero exit.
+
+## T9: docker-compose for n8n
+- Status: todo
+- Depends on: T7
+- Do: add `docker-compose.yml` with n8n for local runs, variables from `.env`, no real keys.
+- Acceptance:
+  1. The file is valid YAML and contains no secrets.
+  2. Variables come from `.env` / `.env.example`.

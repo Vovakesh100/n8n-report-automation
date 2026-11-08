@@ -36,3 +36,8 @@ Q1 (send time/time zone), Q2 (Telegram chat id) and Q4 (no-orders display) have 
 
 ## Session 2
 - T5 status changed to blocked: `.env` values for Telegram are empty (owner fills them manually). The workflow file itself stays as accepted; only a live send is blocked.
+
+### T6: Integer money formatting in workflow (done)
+- Done: Format Message node now uses `abs % 100` and `(abs - rem) / 100` with zero-padded remainder; negatives get a leading "-". No `toFixed`.
+- Coverage: criterion 1 by `test_format_message_has_no_float_money`; 2 by `test_format_message_formats_cents_with_node` (runs node; ran, not skipped; also -5 and -17183); 3 by the remaining tests. Tester green (19 tests) plus manual node checks (99, 101, 999999, large values).
+- Risks: the node test skips if `node` is not installed; no thousands separators; still not imported into a real n8n.
