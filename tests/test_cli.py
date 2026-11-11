@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -7,7 +8,10 @@ import pytest
 
 from report.cli import main
 
-SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_sales.csv"
+ROOT = Path(__file__).resolve().parent.parent
+SAMPLE = ROOT / "data" / "sample_sales.csv"
+# The subprocess must import report from src/, even when pytest runs without PYTHONPATH.
+CHILD_ENV = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
 
 
 def _dates() -> list[str]:
@@ -21,6 +25,7 @@ def test_module_prints_valid_json() -> None:
         capture_output=True,
         check=False,
         text=True,
+        env=CHILD_ENV,
     )
     assert proc.returncode == 0
     assert isinstance(json.loads(proc.stdout), list)
@@ -64,6 +69,7 @@ def test_short_row_reports_line_and_fails(tmp_path) -> None:  # type: ignore[no-
         capture_output=True,
         check=False,
         text=True,
+        env=CHILD_ENV,
     )
     assert proc.returncode != 0
     assert "line 3" in proc.stderr
